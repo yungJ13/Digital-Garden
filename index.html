@@ -817,7 +817,9 @@ audio {
 <script>
 const SUPABASE_URL = 'https://eihifzecfhvipgifevhi.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_8MnHL7GNnvvbOP7bBFQQTQ_pAp4frSE';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+const supabase = window.supabase?.createClient
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
+  : null;
 
 const ST = {
   name: '',
@@ -1225,6 +1227,10 @@ function startPlacing() {
 }
 
 async function onPlace(e) {
+  if (!supabase) {
+    alert('Supabase did not load. Please refresh the page.');
+    return;
+  }
   const sc = document.getElementById('scene');
   const r = sc.getBoundingClientRect();
   const xp = ((e.clientX - r.left) / r.width * 100).toFixed(2) + '%';
@@ -1442,7 +1448,11 @@ document.getElementById('pbk').addEventListener('click', e => {
 
 document.getElementById('add-btn').addEventListener('click', () => open('s1'));
 
-window.addEventListener('load', loadGardenItems);
+window.addEventListener('load', () => {
+  if (supabase) {
+    loadGardenItems();
+  }
+});
 </script>
 </body>
 </html>
