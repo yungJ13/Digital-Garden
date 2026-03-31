@@ -430,18 +430,18 @@ const SUPABASE_URL = 'https://eihifzecfhvipgifevhi.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVpaGlmemVjZmh2aXBnaWZldmhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4Nzk2OTksImV4cCI6MjA5MDQ1NTY5OX0.zsaZw-BrAupuVxS10sOzugtdoXaubjhGlER0jmYpJo4';
 
 /* ─── SAFE INIT (won't crash if key is wrong) ─── */
-let supabase = null;
+let sb = null;
 try {
   const lib = window.supabase;
   if (lib && typeof lib.createClient === 'function' && SUPABASE_ANON_KEY.startsWith('eyJ')) {
-    supabase = lib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    sb = lib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     console.log('Supabase connected');
   } else {
     console.warn('Supabase: anon key not set or library not loaded. Running locally.');
   }
 } catch (e) {
   console.error('Supabase init failed:', e);
-  supabase = null;
+  sb = null;
 }
 
 /* ─── STATE ─── */
@@ -526,34 +526,34 @@ function dataURLToBlob(dataURL) {
 }
 
 async function uploadDrawing(dataUrl) {
-  if (!supabase) return dataUrl;
+  if (!sb) return dataUrl;
   const blob = dataURLToBlob(dataUrl);
   const path = makeId() + '.png';
-  const { error } = await supabase.storage.from('garden-drawings').upload(path, blob, { contentType:'image/png', upsert:false });
+  const { error } = await sb.storage.from('garden-drawings').upload(path, blob, { contentType:'image/png', upsert:false });
   if (error) throw error;
-  const { data } = supabase.storage.from('garden-drawings').getPublicUrl(path);
+  const { data } = sb.storage.from('garden-drawings').getPublicUrl(path);
   return data.publicUrl;
 }
 
 async function uploadAudio(blob) {
-  if (!supabase || !blob) return null;
+  if (!sb || !blob) return null;
   const path = makeId() + '.webm';
-  const { error } = await supabase.storage.from('garden-audio').upload(path, blob, { contentType:'audio/webm', upsert:false });
+  const { error } = await sb.storage.from('garden-audio').upload(path, blob, { contentType:'audio/webm', upsert:false });
   if (error) throw error;
-  const { data } = supabase.storage.from('garden-audio').getPublicUrl(path);
+  const { data } = sb.storage.from('garden-audio').getPublicUrl(path);
   return data.publicUrl;
 }
 
 async function saveGardenItem(record) {
-  if (!supabase) return;
-  const { error } = await supabase.from('garden_items').insert(record);
+  if (!sb) return;
+  const { error } = await sb.from('garden_items').insert(record);
   if (error) throw error;
 }
 
 async function loadGardenItems() {
-  if (!supabase) return;
+  if (!sb) return;
   try {
-    const { data, error } = await supabase.from('garden_items').select('*').order('created_at', { ascending: true });
+    const { data, error } = await sb.from('garden_items').select('*').order('created_at', { ascending: true });
     if (error) throw error;
     if (!data || data.length === 0) return;
     data.forEach((item, i) => {
